@@ -3,6 +3,31 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Push notifications URL" Margin="5"/>
+        <TextBox Name="tbxUrl" Grid.Column="1" Margin="5"/>
+
+        <TextBlock Text="Push notification title" Margin="5" Grid.Row="1"/>
+        <TextBox Name="tbxTitle" Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+        <TextBlock Text="Push notification text" Margin="5" Grid.Row="2"/>
+        <TextBox Name="tbxText" Grid.Row="2" Grid.Column="1" Margin="5"/>
+        <Button Name="btnSend" Grid.Column="1" Grid.Row="3" Margin="15"
+                Content="Send notification" HorizontalAlignment="Right"
+                VerticalAlignment="Top" Width="150"
+                Click="btnSend_Click"/>
+        <TextBlock Name="lblStatus" Text="Status: " Grid.Row="4" 
+                   Grid.ColumnSpan="2" Margin="20"/>
     </Grid>
 </Window>
