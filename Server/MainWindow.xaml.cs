@@ -34,7 +34,7 @@ namespace Server
             builder.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             builder.Append("<wp:Notification xmlns:wp=\"WPNotification\">");
             builder.Append("      <wp:Tile>");
-            builder.Append("            <wp:BackgroundImage>http://hattrickunited.org/cyclonesfc/files/2011/07/boobs1.jpg</wp:BackgroundImage>");
+            builder.Append("            <wp:BackgroundImage>{2}</wp:BackgroundImage>");
             builder.Append("            <wp:Count>{0}</wp:Count>");
             builder.Append("            <wp:Title>{1}</wp:Title>");
             builder.Append("      </wp:Tile>");
@@ -65,7 +65,7 @@ namespace Server
                 MessageBox.Show("Please, enter url");
                 return;
             }
-            if (string.IsNullOrEmpty(tbxText.Text) || string.IsNullOrEmpty(tbxTitle.Text))
+            if (string.IsNullOrEmpty(tbxText.Text) || string.IsNullOrEmpty(tbxTitle.Text) || string.IsNullOrEmpty(tbxImage.Text))
             {
                 MessageBox.Show("Please, fill all the fields");
                 return;
@@ -78,10 +78,15 @@ namespace Server
             request.Headers = new WebHeaderCollection();
             request.ContentType = "text/xml";
 
-            request.Headers.Add("X-WindowsPhone-Target", "token");
-            request.Headers.Add("X-NotificationClass", "1");
+            /*headers for tile notification*/
+            //request.Headers.Add("X-WindowsPhone-Target", "token");
+            //request.Headers.Add("X-NotificationClass", "1");
 
-            string str = string.Format(tilePushXml, tbxTitle.Text, tbxText.Text);
+            /*headers for raw notifications*/
+            request.Headers.Add("X-WindowsPhone-Target", "");
+            request.Headers.Add("X-NotificationClass", "3");
+
+            string str = string.Format(tilePushXml, tbxTitle.Text, tbxText.Text, tbxImage.Text);
             byte[] strBytes = Encoding.Default.GetBytes(str);
             request.ContentLength = strBytes.Length;
             using (Stream requestStream = request.GetRequestStream())
