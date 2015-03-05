@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,6 +28,13 @@ namespace Server
         {
             InitializeComponent();
             InitializeParams();
+            this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            ServiceHost host = new ServiceHost(typeof(RegistrationService));
+            host.Open();
         }
 
         private void InitializeParams()
@@ -45,7 +54,7 @@ namespace Server
             builder.Clear();
             builder.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             builder.Append("<wp:Notification xmlns:wp=\"WPNotification\">");
-            builder.Append("      <wp:Toast>");            
+            builder.Append("      <wp:Toast>");
             builder.Append("            <wp:Text1>{0}</wp:Text1>");
             builder.Append("            <wp:Text2>{1}</wp:Text2>");
             builder.Append("            <wp:Param>?developer=Shokhrukh Umriyaev</wp:Param>");
@@ -60,7 +69,7 @@ namespace Server
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-            if(string.IsNullOrEmpty(tbxUrl.Text))
+            if (string.IsNullOrEmpty(tbxUrl.Text))
             {
                 MessageBox.Show("Please, enter url");
                 return;
@@ -99,6 +108,56 @@ namespace Server
             string deviceConnectionStatus = response.Headers["X-DeviceConnectionStatus"];
             string subscriptionStatus = response.Headers["X-SubscriptionStatus"];
             lblStatus.Text = "Notification status: " + notificationStatus + "; Device connection status : " + deviceConnectionStatus + "; Subscription status: " + subscriptionStatus;
+        }
+
+        private void btnBroadcast_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(tbxText.Text) || string.IsNullOrEmpty(tbxTitle.Text))
+            {
+                MessageBox.Show("Please, fill text and title");
+                return;
+            }
+
+            List<Uri> allSubscribersUri = RegistrationService.GetSubscribers();
+            foreach (Uri subscriberUri in allSubscribersUri)
+            {
+                sendPushNotificationToClient(subscriberUri.ToString());
+            }
+        }
+
+        private void sendPushNotificationToClient(string url)
+        {
+            HttpWebRequest pushNotification = (HttpWebRequest)WebRequest.Create(url);
+            pushNotification.Method = "POST";
+            pushNotification.Headers = new WebHeaderCollection();
+            pushNotification.ContentType = "text/xml";
+
+            pushNotification.Headers.Add("X-WindowsPhone-Target", "toast");
+            pushNotification.Headers.Add("X-NotificationClass", "2");
+
+            string str = string.Format(toastPushXml, tbxTitle.Text, tbxText.Text);
+            byte[] strBytes = Encoding.Default.GetBytes(str);
+
+            pushNotification.ContentLength = strBytes.Length;
+
+            using (Stream requestStream = pushNotification.GetRequestStream())
+            {
+                requestStream.Write(strBytes, 0, strBytes.Length);
+            }
+
+            try
+            {
+                HttpWebResponse response = (HttpWebResponse)pushNotification.GetResponse();
+                string notificationStatus = response.Headers["X-NotificationStatus"];
+                string deviceConnectionStatus = response.Headers["X-DeviceConnectionStatus"];
+                string subscriptionStatus = response.Headers["X-SubscriptionStatus"];
+                lblStatus.Text += "Notification status: " + notificationStatus + "; Device connection status : " + deviceConnectionStatus + "; Subscription status: " + subscriptionStatus + "\n";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception occured while sending notification: " + ex.Message);
+                lblStatus.Text = "Failed to connect, exception detail: " + ex.Message;
+            }
         }
 
 

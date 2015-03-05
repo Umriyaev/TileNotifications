@@ -31,9 +31,69 @@ namespace Client_app
             get { return this.channelUri; }
             set
             {
-                this.channelUri = value;
-                Debug.WriteLine(value.ToString());
+                if (channelUri != null)
+                {
+                    UnregisterUriFromServer(channelUri);
+                }
+                channelUri = value;
+                RegisterUriWithServer(value);
+                OnChannelUriChanged(value);
             }
+        }
+
+        private void OnChannelUriChanged(Uri value)
+        {
+            Debug.WriteLine(value.ToString());
+        }
+
+        private void RegisterUriWithServer(Uri newChannelUri)
+        {
+            string baseUri = "http://localhost/RegistrationService/Register?uri={0}";
+            string theUri = string.Format(baseUri, newChannelUri.ToString());
+
+            WebClient client = new WebClient();
+            client.DownloadStringCompleted += (s, e) =>
+            {
+                if (e.Error == null)
+                {
+                    Dispatcher.BeginInvoke(() =>
+                    {
+                        tbxInfo.Text = "changing uri to " + newChannelUri.ToString();
+                    });
+
+                }
+                else
+                {
+                    Dispatcher.BeginInvoke(() => { tbxInfo.Text = "registration failed" + e.Error.Message; });
+                }
+            };
+
+            client.DownloadStringAsync(new Uri(theUri));
+        }
+
+        private void UnregisterUriFromServer(Uri channelUri)
+        {
+            string baseUri = "http://localhost/RegistrationService/Unregister?uri={0}";
+            string theUri = string.Format(baseUri, channelUri.ToString());
+
+            WebClient client = new WebClient();
+            client.DownloadStringCompleted += (s, e) =>
+            {
+                if (e.Error == null)
+                {
+                    Dispatcher.BeginInvoke(() =>
+                    {
+                        tbxInfo.Text = "unregistered uri " + channelUri.ToString();
+                    });
+                }
+                else
+                {
+                    Dispatcher.BeginInvoke(() => { tbxInfo.Text = "failed to unregister " + e.Error.Message; });
+                }
+
+            };
+
+            client.DownloadStringAsync(new Uri(theUri));
         }
 
         private void btnCreate_Click(object sender, RoutedEventArgs e)
@@ -62,7 +122,7 @@ namespace Client_app
                 notificationChannel.ErrorOccurred += notificationChannel_ErrorOccurred;
                 notificationChannel.HttpNotificationReceived += notificationChannel_HttpNotificationReceived;
                 notificationChannel.ShellToastNotificationReceived += notificationChannel_ShellToastNotificationReceived;
-                notificationChannel.ConnectionStatusChanged+=notificationChannel_ConnectionStatusChanged;
+                notificationChannel.ConnectionStatusChanged += notificationChannel_ConnectionStatusChanged;
 
                 notificationChannel.Open();
                 BindToShell();

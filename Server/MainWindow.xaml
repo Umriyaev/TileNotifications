@@ -28,6 +28,8 @@
                 Content="Send notification" HorizontalAlignment="Right"
                 VerticalAlignment="Top" Width="150"
                 Click="btnSend_Click"/>
+        <Button Name="btnBroadcast" Content="Broadcast" Margin="15" Grid.Row="4" Grid.Column="1" 
+                HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Click="btnBroadcast_Click"/>
         <TextBlock Name="lblStatus" Text="Status: " Grid.Row="5" 
                    Grid.ColumnSpan="2" Margin="20"/>
         
